@@ -73,8 +73,11 @@ type Service struct {
 //    !weblate status [language]
 // Responds with a notice containing the Translation status for either the hole project or a selected language.
 //
-//    !weblate list languages
+//    !weblate list languages [page]
 // Responds with a notice containing all languages being worked on.
+//
+//    !weblate list projects [page]
+// Responds with a notice containing the available Translation projects and their direct links.
 //
 //    !weblate maintain <language>
 // Adds the User as a maintainer to the selected language.
@@ -84,9 +87,6 @@ type Service struct {
 //
 //    !weblate ping <language>
 // Pings all maintainer of that list.
-//
-//    !weblate list projects
-// Responds with a notice containing the available Translation projects and their direct links.
 func (s *Service) Commands(cli *gomatrix.Client) []types.Command {
 	return []types.Command{
 		types.Command{
@@ -99,6 +99,12 @@ func (s *Service) Commands(cli *gomatrix.Client) []types.Command {
 			Path: []string{"weblate", "list", "languages"},
 			Command: func(roomID, userID string, args []string) (interface{}, error) {
 				return s.cmdWeblateListLanguages(roomID, userID, args)
+			},
+		},
+		types.Command{
+			Path: []string{"weblate", "list", "projects"},
+			Command: func(roomID, userID string, args []string) (interface{}, error) {
+				return s.cmdWeblateListProjects(roomID, userID, args)
 			},
 		},
 		types.Command{
@@ -120,12 +126,6 @@ func (s *Service) Commands(cli *gomatrix.Client) []types.Command {
 			},
 		},
 		types.Command{
-			Path: []string{"weblate", "list", "projects"},
-			Command: func(roomID, userID string, args []string) (interface{}, error) {
-				return s.cmdWeblateListProjects(roomID, userID, args)
-			},
-		},
-		types.Command{
 			Path: []string{"weblate", "help"},
 			Command: func(roomID, userID string, args []string) (interface{}, error) {
 				return s.cmdWeblateHelp(roomID, userID, args)
@@ -143,16 +143,10 @@ func (s *Service) cmdWeblateStatus(roomID, userID string, args []string) (interf
 }
 
 func (s *Service) cmdWeblateListLanguages(roomID, userID string, args []string) (interface{}, error) {
-	if len(args) > 0 {
-		return nil, fmt.Errorf("Too many arguments")
-	}
+	if len(args) == 1 {
+		message := "Available Languages on page " + args[0] + ":\r\n"
 
-	endpoint := "languages"
-	message := "Available Languages:\r\n"
-	r := strings.NewReplacer(s.ServerURL+"api/", "")
-
-	for len(endpoint) > 0 {
-		weblateRquest, err := s.makeWeblateRequest("GET", endpoint, nil)
+		weblateRquest, err := s.makeWeblateRequest("GET", "languages/?page="+args[0], nil)
 		if weblateRquest != nil {
 			defer weblateRquest.Body.Close()
 		}
@@ -168,23 +162,41 @@ func (s *Service) cmdWeblateListLanguages(roomID, userID string, args []string) 
 		for _, element := range languages.Results {
 			message = message + element.Code + " - " + element.Name + "\r\n"
 		}
-		endpoint = r.Replace(languages.Next)
-	}
+		return gomatrix.TextMessage{"m.notice", message}, nil
+	} else {
+		endpoint := "languages"
+		message := "Available Languages:\r\n"
+		r := strings.NewReplacer(s.ServerURL+"api/", "")
 
-	return gomatrix.TextMessage{"m.notice", message}, nil
+		for len(endpoint) > 0 {
+			weblateRquest, err := s.makeWeblateRequest("GET", endpoint, nil)
+			if weblateRquest != nil {
+				defer weblateRquest.Body.Close()
+			}
+			if err != nil {
+				return nil, fmt.Errorf("Failed to query Weblate: %s", err.Error())
+			}
+
+			var languages weblateLanguagesResult
+			if err := json.NewDecoder(weblateRquest.Body).Decode(&languages); err != nil {
+				return nil, fmt.Errorf("Failed to decode response (HTTP %d): %s", weblateRquest.StatusCode, err.Error())
+			}
+
+			for _, element := range languages.Results {
+				message = message + element.Code + " - " + element.Name + "\r\n"
+			}
+			endpoint = r.Replace(languages.Next)
+		}
+		return gomatrix.TextMessage{"m.notice", message}, nil
+	}
+	return nil, fmt.Errorf("You somehow exploited this command")
 }
 
 func (s *Service) cmdWeblateListProjects(roomID, userID string, args []string) (interface{}, error) {
-	if len(args) > 0 {
-		return nil, fmt.Errorf("Too many arguments")
-	}
+	if len(args) == 1 {
+		message := "Available Projects on page " + args[0] + ":\r\n"
 
-	endpoint := "projects"
-	message := "Available Projects:\r\n"
-	r := strings.NewReplacer(s.ServerURL+"api/", "")
-
-	for len(endpoint) > 0 {
-		weblateRquest, err := s.makeWeblateRequest("GET", endpoint, nil)
+		weblateRquest, err := s.makeWeblateRequest("GET", "projects/?page="+args[0], nil)
 		if weblateRquest != nil {
 			defer weblateRquest.Body.Close()
 		}
@@ -200,10 +212,35 @@ func (s *Service) cmdWeblateListProjects(roomID, userID string, args []string) (
 		for _, element := range projects.Results {
 			message = message + element.Name + " - " + element.WebURL + "\r\n"
 		}
-		endpoint = r.Replace(projects.Next)
-	}
 
-	return gomatrix.TextMessage{"m.notice", message}, nil
+		return gomatrix.TextMessage{"m.notice", message}, nil
+	} else {
+		endpoint := "projects"
+		message := "Available Projects:\r\n"
+		r := strings.NewReplacer(s.ServerURL+"api/", "")
+
+		for len(endpoint) > 0 {
+			weblateRquest, err := s.makeWeblateRequest("GET", endpoint, nil)
+			if weblateRquest != nil {
+				defer weblateRquest.Body.Close()
+			}
+			if err != nil {
+				return nil, fmt.Errorf("Failed to query Weblate: %s", err.Error())
+			}
+
+			var projects weblateProjectsResult
+			if err := json.NewDecoder(weblateRquest.Body).Decode(&projects); err != nil {
+				return nil, fmt.Errorf("Failed to decode response (HTTP %d): %s", weblateRquest.StatusCode, err.Error())
+			}
+
+			for _, element := range projects.Results {
+				message = message + element.Name + " - " + element.WebURL + "\r\n"
+			}
+			endpoint = r.Replace(projects.Next)
+		}
+
+		return gomatrix.TextMessage{"m.notice", message}, nil
+	}
 }
 
 func (s *Service) cmdWeblateHelp(roomID, userID string, args []string) (interface{}, error) {
