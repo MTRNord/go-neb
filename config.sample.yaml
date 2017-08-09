@@ -136,3 +136,10 @@ services:
         "hook1":
           RoomID: "!someroom:id"
           MessageType: "m.text" # default is m.text
+
+  - ID: "weblate_service"
+      Type: "weblate"
+      UserID: "@weblate:localhost" # requires a Syncing client
+      Config:
+        api_key: "2356saaqfhgfe"
+        server_url: "https://translate.riot.im/"
