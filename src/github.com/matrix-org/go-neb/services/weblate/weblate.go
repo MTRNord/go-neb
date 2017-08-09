@@ -116,6 +116,9 @@ func (s *Service) cmdWeblateListLanguages(roomID, userID string, args []string) 
 	}
 
 	weblateRquest, err := s.makeWeblateRequest("GET", "languages", nil)
+	if weblateRquest != nil {
+		defer weblateRquest.Body.Close()
+	}
 	if err != nil {
 		return nil, fmt.Errorf("Failed to query Weblate: %s", err.Error())
 	}
@@ -147,9 +150,6 @@ func (s *Service) makeWeblateRequest(method string, endpoint string, body []byte
 	req.Header.Add("Autorization", "Token "+s.APIKey)
 
 	res, err := httpClient.Do(req)
-	if res != nil {
-		defer res.Body.Close()
-	}
 	if err != nil {
 		log.Error(err)
 		return nil, err
