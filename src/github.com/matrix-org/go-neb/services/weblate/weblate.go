@@ -147,23 +147,28 @@ func (s *Service) cmdWeblateListLanguages(roomID, userID string, args []string) 
 		return nil, fmt.Errorf("Too many arguments")
 	}
 
-	weblateRquest, err := s.makeWeblateRequest("GET", "languages", nil)
-	if weblateRquest != nil {
-		defer weblateRquest.Body.Close()
-	}
-	if err != nil {
-		return nil, fmt.Errorf("Failed to query Weblate: %s", err.Error())
-	}
-
-	var languages weblateLanguagesResult
-	if err := json.NewDecoder(weblateRquest.Body).Decode(&languages); err != nil {
-		return nil, fmt.Errorf("Failed to decode response (HTTP %d): %s", weblateRquest.StatusCode, err.Error())
-	}
-
+	endpoint := "languages"
 	message := "Available Languages:\r\n"
+	r := strings.NewReplacer(s.ServerURL+"api/", "")
 
-	for _, element := range languages.Results {
-		message = message + element.Code + " - " + element.Name + "\r\n"
+	for len(endpoint) > 0 {
+		weblateRquest, err := s.makeWeblateRequest("GET", endpoint, nil)
+		if weblateRquest != nil {
+			defer weblateRquest.Body.Close()
+		}
+		if err != nil {
+			return nil, fmt.Errorf("Failed to query Weblate: %s", err.Error())
+		}
+
+		var languages weblateLanguagesResult
+		if err := json.NewDecoder(weblateRquest.Body).Decode(&languages); err != nil {
+			return nil, fmt.Errorf("Failed to decode response (HTTP %d): %s", weblateRquest.StatusCode, err.Error())
+		}
+
+		for _, element := range languages.Results {
+			message = message + element.Code + " - " + element.Name + "\r\n"
+		}
+		endpoint = r.Replace(languages.Next)
 	}
 
 	return gomatrix.TextMessage{"m.notice", message}, nil
