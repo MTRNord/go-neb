@@ -213,7 +213,7 @@ func (s *Service) cmdWeblateHelp(roomID, userID string, args []string) (interfac
 			"- !weblate help [command] - Shows this help\r\n" +
 			"- !weblate list languages - Lists available Languages\r\n" +
 			"- !weblate list projects - Lists available Projects"
-
+		return gomatrix.TextMessage{"m.notice", message}, nil
 	} else if len(args) == 1 {
 		if args[0] == "list" {
 			message = "\"!weblate list\":\r\n\r\n" +
@@ -221,20 +221,31 @@ func (s *Service) cmdWeblateHelp(roomID, userID string, args []string) (interfac
 				"Subcommands:\r\n" +
 				"- !weblate list languages - Lists available Languages\r\n" +
 				"- !weblate list projects - Lists available Projects"
+			return gomatrix.TextMessage{"m.notice", message}, nil
+		} else {
+			message = "Command not found"
+			return nil, fmt.Errorf(message)
 		}
 	} else if len(args) == 1 {
 		if args[0] == "list" {
 			if args[1] == "languages" {
 				message = "\"!weblate list languages\":\r\n\r\n" +
 					"Lists available Languages"
+				return gomatrix.TextMessage{"m.notice", message}, nil
 			} else if args[1] == "projects" {
 				message = "\"!weblate list languages\":\r\n\r\n" +
 					"Lists available Projects"
+				return gomatrix.TextMessage{"m.notice", message}, nil
+			} else {
+				message = "Command not found"
+				return nil, fmt.Errorf(message)
 			}
 		}
+	} else {
+		message = "Command not found"
+		return nil, fmt.Errorf(message)
 	}
-
-	return gomatrix.TextMessage{"m.notice", message}, nil
+	return nil, fmt.Errorf("You somehow exploited this command")
 }
 
 func (s *Service) makeWeblateRequest(method string, endpoint string, body []byte) (*http.Response, error) {
