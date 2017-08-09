@@ -258,7 +258,9 @@ func (s *Service) makeWeblateRequest(method string, endpoint string, body []byte
 	}
 
 	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Autorization", "Token "+s.APIKey)
+	if len(s.APIKey) > 0 {
+		req.Header.Add("Autorization", "Token "+s.APIKey)
+	}
 
 	res, err := httpClient.Do(req)
 	if err != nil {
