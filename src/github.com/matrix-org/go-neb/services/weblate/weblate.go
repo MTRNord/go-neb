@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"bytes"
+	"encoding/json"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/matrix-org/go-neb/types"
@@ -17,6 +18,21 @@ import (
 const ServiceType = "weblate"
 
 var httpClient = &http.Client{}
+
+type weblateLanguagesResult struct {
+	Count    int         `json:"count"`
+	Next     string      `json:"next"`
+	Previous interface{} `json:"previous"`
+	Results  []struct {
+		Code           string `json:"code"`
+		Name           string `json:"name"`
+		Nplurals       int    `json:"nplurals"`
+		Pluralequation string `json:"pluralequation"`
+		Direction      string `json:"direction"`
+		WebURL         string `json:"web_url"`
+		URL            string `json:"url"`
+	} `json:"results"`
+}
 
 // Service represents the Echo service. It has no Config fields.
 type Service struct {
@@ -56,7 +72,7 @@ func (s *Service) Commands(cli *gomatrix.Client) []types.Command {
 		types.Command{
 			Path: []string{"weblate", "list", "languages"},
 			Command: func(roomID, userID string, args []string) (interface{}, error) {
-				return &gomatrix.TextMessage{"m.notice", strings.Join(args, " ")}, nil
+				return s.cmdWeblateListLanguages(roomID, userID, args)
 			},
 		},
 		types.Command{
@@ -94,7 +110,31 @@ func (s *Service) cmdWeblateStatus(roomID, userID string, args []string) (interf
 	return gomatrix.TextMessage{"m.notice", "Not yet implemented"}, nil
 }
 
-func (s *Service) makeWeblateRequest(method string, endpoint string, body []byte) (interface{}, error) {
+func (s *Service) cmdWeblateListLanguages(roomID, userID string, args []string) (interface{}, error) {
+	if len(args) > 0 {
+		return nil, fmt.Errorf("Too many arguments")
+	}
+
+	weblateRquest, err := s.makeWeblateRequest("GET", "languages", nil)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to query Weblate: %s", err.Error())
+	}
+
+	var languages weblateLanguagesResult
+	if err := json.NewDecoder(weblateRquest.Body).Decode(&languages); err != nil {
+		return nil, fmt.Errorf("Failed to decode response (HTTP %d): %s", weblateRquest.StatusCode, err.Error())
+	}
+
+	var message string
+
+	for _, element := range languages.Results {
+		message = message + element.Code + " - " + element.Name + "\r\n"
+	}
+
+	return gomatrix.TextMessage{"m.notice", message}, nil
+}
+
+func (s *Service) makeWeblateRequest(method string, endpoint string, body []byte) (*http.Response, error) {
 	reader := bytes.NewReader(body)
 
 	req, err := http.NewRequest(method, s.ServerURL+"api/"+endpoint, reader)
@@ -127,7 +167,7 @@ func (s *Service) makeWeblateRequest(method string, endpoint string, body []byte
 		return nil, fmt.Errorf("Failed to decode response (HTTP %d)", res.StatusCode)
 	}
 
-	return &res.Body, nil
+	return res, nil
 }
 
 func init() {
