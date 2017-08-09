@@ -125,6 +125,12 @@ func (s *Service) Commands(cli *gomatrix.Client) []types.Command {
 				return s.cmdWeblateListProjects(roomID, userID, args)
 			},
 		},
+		types.Command{
+			Path: []string{"weblate", "help"},
+			Command: func(roomID, userID string, args []string) (interface{}, error) {
+				return s.cmdWeblateHelp(roomID, userID, args)
+			},
+		},
 	}
 }
 
@@ -186,6 +192,19 @@ func (s *Service) cmdWeblateListProjects(roomID, userID string, args []string) (
 	for _, element := range languages.Results {
 		message = message + element.Name + " - " + element.WebURL + "\r\n"
 	}
+
+	return gomatrix.TextMessage{"m.notice", message}, nil
+}
+
+func (s *Service) cmdWeblateHelp(roomID, userID string, args []string) (interface{}, error) {
+	if len(args) > 0 {
+		return nil, fmt.Errorf("Too many arguments")
+	}
+
+	message := "Available Commands:\r\n\r\n" +
+		"- !weblate help [command] - Shows this help\r\n" +
+		"- !weblate list languages - Lists available Languages\r\n" +
+		"- !weblate list projects - Lists available Projects"
 
 	return gomatrix.TextMessage{"m.notice", message}, nil
 }
