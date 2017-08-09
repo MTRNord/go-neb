@@ -34,6 +34,32 @@ type weblateLanguagesResult struct {
 	} `json:"results"`
 }
 
+type weblateProjectsResult struct {
+	Count    int         `json:"count"`
+	Next     interface{} `json:"next"`
+	Previous interface{} `json:"previous"`
+	Results  []struct {
+		Name           string `json:"name"`
+		Slug           string `json:"slug"`
+		Web            string `json:"web"`
+		SourceLanguage struct {
+			Code           string `json:"code"`
+			Name           string `json:"name"`
+			Nplurals       int    `json:"nplurals"`
+			Pluralequation string `json:"pluralequation"`
+			Direction      string `json:"direction"`
+			WebURL         string `json:"web_url"`
+			URL            string `json:"url"`
+		} `json:"source_language"`
+		WebURL            string `json:"web_url"`
+		URL               string `json:"url"`
+		ComponentsListURL string `json:"components_list_url"`
+		RepositoryURL     string `json:"repository_url"`
+		StatisticsURL     string `json:"statistics_url"`
+		ChangesListURL    string `json:"changes_list_url"`
+	} `json:"results"`
+}
+
 // Service represents the Echo service. It has no Config fields.
 type Service struct {
 	types.DefaultService
@@ -96,7 +122,7 @@ func (s *Service) Commands(cli *gomatrix.Client) []types.Command {
 		types.Command{
 			Path: []string{"weblate", "list", "projects"},
 			Command: func(roomID, userID string, args []string) (interface{}, error) {
-				return &gomatrix.TextMessage{"m.notice", strings.Join(args, " ")}, nil
+				return s.cmdWeblateListProjects(roomID, userID, args)
 			},
 		},
 	}
@@ -128,10 +154,37 @@ func (s *Service) cmdWeblateListLanguages(roomID, userID string, args []string) 
 		return nil, fmt.Errorf("Failed to decode response (HTTP %d): %s", weblateRquest.StatusCode, err.Error())
 	}
 
-	var message string
+	message := "Available Languages:\r\n"
 
 	for _, element := range languages.Results {
 		message = message + element.Code + " - " + element.Name + "\r\n"
+	}
+
+	return gomatrix.TextMessage{"m.notice", message}, nil
+}
+
+func (s *Service) cmdWeblateListProjects(roomID, userID string, args []string) (interface{}, error) {
+	if len(args) > 0 {
+		return nil, fmt.Errorf("Too many arguments")
+	}
+
+	weblateRquest, err := s.makeWeblateRequest("GET", "projects", nil)
+	if weblateRquest != nil {
+		defer weblateRquest.Body.Close()
+	}
+	if err != nil {
+		return nil, fmt.Errorf("Failed to query Weblate: %s", err.Error())
+	}
+
+	var languages weblateProjectsResult
+	if err := json.NewDecoder(weblateRquest.Body).Decode(&languages); err != nil {
+		return nil, fmt.Errorf("Failed to decode response (HTTP %d): %s", weblateRquest.StatusCode, err.Error())
+	}
+
+	message := "Available Projects:\r\n"
+
+	for _, element := range languages.Results {
+		message = message + element.Name + " - " + element.WebURL + "\r\n"
 	}
 
 	return gomatrix.TextMessage{"m.notice", message}, nil
