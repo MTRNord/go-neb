@@ -226,7 +226,7 @@ func (s *Service) cmdWeblateHelp(roomID, userID string, args []string) (interfac
 			message = "Command not found"
 			return nil, fmt.Errorf(message)
 		}
-	} else if len(args) == 1 {
+	} else if len(args) == 2 {
 		if args[0] == "list" {
 			if args[1] == "languages" {
 				message = "\"!weblate list languages\":\r\n\r\n" +
