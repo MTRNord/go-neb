@@ -42,7 +42,7 @@ func (s *Service) Commands(cli *gomatrix.Client) []types.Command {
 	}
 }
 
-func paseMeshviewerHopglassFfmapNodes(mapUrl string) (int, error) {
+func paseMeshviewerFfmapNodes(mapUrl string) (int, error) {
 	var nodes int
 
 	var handler func([]byte, []byte, jsonparser.ValueType, int) error
@@ -82,10 +82,59 @@ func paseMeshviewerHopglassFfmapNodes(mapUrl string) (int, error) {
 	if nodesErr != nil {
 		return 0, nodesErr
 	}
-	nodesObject, _, _, _ := jsonparser.Get(nodesJson, "nodes")
-	nodesObjectErr := jsonparser.ObjectEach(nodesObject, handler)
-	if nodesObjectErr != nil {
-		return 0, nodesObjectErr
+	nodesObject, _, _, nodesObject := jsonparser.Get(nodesJson, "nodes")
+	if nodesObject != nil {
+		return 0, nodesObject
+	}
+	nodesObjectEachErr := jsonparser.ObjectEach(nodesObject, handler)
+	if nodesObjectEachErr != nil {
+		return 0, nodesObjectEachErr
+	}
+
+	return nodes, nil
+}
+
+func paseHopglassFfmapNodes(mapUrl string) (int, error) {
+	var nodes int
+
+	var mapConfigURL string
+	if mapUrl[len(mapUrl)-1:] == "/" {
+		mapConfigURL = mapUrl + "config.json"
+	} else {
+		mapConfigURL = mapUrl + "/" + "config.json"
+	}
+
+	mapConfigJson, mapConfigErr := getApi(mapConfigURL)
+	if mapConfigErr != nil {
+		return 0, mapConfigErr
+	}
+	dataUrl, _ := jsonparser.GetString(mapConfigJson, "dataPath")
+
+	var nodesJsonURL string
+	if mapUrl[len(mapUrl)-1:] == "/" {
+		nodesJsonURL = mapUrl + dataUrl + "nodes.json"
+	} else {
+		if dataUrl[0] == '/' {
+			nodesJsonURL = mapUrl + dataUrl + "nodes.json"
+		} else {
+			nodesJsonURL = mapUrl + "/" + dataUrl + "nodes.json"
+		}
+	}
+
+	nodesJson, nodesErr := getApi(nodesJsonURL)
+	if nodesErr != nil {
+		return 0, nodesErr
+	}
+
+	_, communityArrayErr := jsonparser.ArrayEach(nodesJson, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+		online, _ := jsonparser.GetBoolean(value, "flags", "online")
+		if online {
+			nodes++
+		}
+	}, "nodes")
+
+	if communityArrayErr != nil {
+		return nil, communityArrayErr
 	}
 
 	return nodes, nil
@@ -163,11 +212,11 @@ func getNodes(args []string) (interface{}, error) {
 		if mapType == "geographical" {
 			switch technicalType {
 			case "meshviewer":
-				nodes, nodesErr = paseMeshviewerHopglassFfmapNodes(mapUrl)
+				nodes, nodesErr = paseMeshviewerFfmapNodes(mapUrl)
 			case "hopglass":
-				nodes, nodesErr = paseMeshviewerHopglassFfmapNodes(mapUrl)
+				nodes, nodesErr = paseHopglassFfmapNodes(mapUrl)
 			case "ffmap":
-				nodes, nodesErr = paseMeshviewerHopglassFfmapNodes(mapUrl)
+				nodes, nodesErr = paseMeshviewerFfmapNodes(mapUrl)
 			case "netmon":
 				nodes, nodesErr = paseNetmonNodes(mapUrl)
 				//case "openwifimap":
