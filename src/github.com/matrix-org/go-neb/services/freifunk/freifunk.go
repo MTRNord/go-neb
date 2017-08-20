@@ -67,10 +67,6 @@ func paseMeshviewerHopglassFfmapNodes(mapUrl string) (int, error) {
 	}
 	dataUrl, _ := jsonparser.GetString(mapConfigJson, "dataPath")
 
-	if dataUrl == "/" {
-		dataUrl = ""
-	}
-
 	var nodesJsonURL string
 	if mapUrl[len(mapUrl)-1:] == "/" {
 		nodesJsonURL = mapUrl + dataUrl + "nodes.json"
