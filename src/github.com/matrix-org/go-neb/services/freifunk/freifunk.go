@@ -68,7 +68,7 @@ func paseMeshviewerHoppglassFfmapNodes(mapUrl string) (int, error) {
 	dataUrl, _ := jsonparser.GetString(mapConfigJson, "dataPath")
 
 	var nodesJsonURL string
-	if mapUrl[len(mapUrl)-1:] == '/' {
+	if mapUrl[len(mapUrl)-1:] == "/" {
 		nodesJsonURL = mapUrl + dataUrl + "nodes.json"
 	} else {
 		if dataUrl[0] == '/' {
@@ -116,9 +116,9 @@ func paseNetmonNodes(mapUrl string) (int, error) {
 		return 0, nodesErr
 	}
 	nodesObject, _, _, _ := jsonparser.Get(nodesJson, "nodes")
-	nodesObjectErr = jsonparser.ObjectEach(nodesObject, handler)
+	nodesObjectErr := jsonparser.ObjectEach(nodesObject, handler)
 	if nodesObjectErr != nil {
-		return nil, nodesObjectErr
+		return 0, nodesObjectErr
 	}
 
 	return nodes, nil
@@ -134,14 +134,10 @@ func paseOpenwifimapNodes(mapUrl string) (int, error) {
 
 	nodesJson, nodesErr := getApi(nodesJsonURL)
 	if nodesErr != nil {
-		return nil, nodesErr
+		return 0, nodesErr
 	}
 	nodes, _ := jsonparser.GetInt(nodesJson, "count")
-	nodesInt, err := strconv.Atoi(nodes)
-	if err != nil {
-		return nil, err
-	}
-	return nodesInt, nil
+	return nodes, nil
 }
 
 func getNodes(args []string) (interface{}, error) {
@@ -185,7 +181,7 @@ func getNodes(args []string) (interface{}, error) {
 	}
 
 	if nodesErr != nil {
-		return nil, nodesObjectErr
+		return nil, nodesErr
 	}
 
 	return &gomatrix.TextMessage{"m.notice", strconv.Itoa(nodes)}, nil
