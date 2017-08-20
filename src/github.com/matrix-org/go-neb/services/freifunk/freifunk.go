@@ -2,6 +2,7 @@
 package freifunk
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -34,13 +35,14 @@ func (s *Service) Commands(cli *gomatrix.Client) []types.Command {
 }
 
 func getCommunities() (interface{}, error) {
-	var communities []byte
+	var communities string
 	var handler func([]byte, []byte, jsonparser.ValueType, int) error
 	handler = func(key []byte, value []byte, dataType jsonparser.ValueType, offset int) error {
-		communities = append(communities, "\n", key)
+		keyString := jsonparser.ParseString(key)
+		communities = communities + "\n" + key
 	}
 	jsonparser.ObjectEach(getFFApi(), handler)
-	return &gomatrix.TextMessage{"m.notice", jsonparser.ParseString(communities)}, nil
+	return &gomatrix.TextMessage{"m.notice", communities}, nil
 }
 
 // searchGiphy returns info about a gif
@@ -59,9 +61,12 @@ func (s *Service) getFFApi() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	data := []byte(res.Body)
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
 
-	return data, nil
+	return body, nil
 }
 
 func init() {
