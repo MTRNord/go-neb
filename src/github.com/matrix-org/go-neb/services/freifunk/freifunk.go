@@ -134,7 +134,7 @@ func paseHopglassFfmapNodes(mapUrl string) (int, error) {
 	}, "nodes")
 
 	if communityArrayErr != nil {
-		return nil, communityArrayErr
+		return 0, communityArrayErr
 	}
 
 	return nodes, nil
