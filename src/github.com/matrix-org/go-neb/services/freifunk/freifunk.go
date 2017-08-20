@@ -42,7 +42,11 @@ func getCommunities() (interface{}, error) {
 		if err != nil {
 			return err
 		}
-		communities = communities + ", " + keyString
+		if communities == "" {
+			communities = keyString
+		} else {
+			communities = communities + ", " + keyString
+		}
 		return nil
 	}
 	ffApiJson, err := getFFApi()
