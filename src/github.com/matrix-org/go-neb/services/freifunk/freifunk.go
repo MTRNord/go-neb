@@ -4,6 +4,7 @@ package freifunk
 import (
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/buger/jsonparser"
@@ -67,16 +68,16 @@ func getNodes(args []string) (interface{}, error) {
 
 		if technicalType == "meshviewer" {
 			if mapType == "geographical" {
-				var nodesJson string
-				if mapUrl[len(mapUrl)-1] == "/" {
-					nodesJson = mapUrl + "data" + "nodes.json"
+				var nodesJsonURL string
+				if mapUrl[len(mapUrl)-1:] == "/" {
+					nodesJsonURL = mapUrl + "data" + "nodes.json"
 				} else {
-					nodesJson = mapUrl + "/" + "data" + "nodes.json"
+					nodesJsonURL = mapUrl + "/" + "data" + "nodes.json"
 				}
 
-				nodesJson, _ := getApi(nodesJson)
-				nodes, _, _, _ := jsonparser.Get(nodesJson, "nodes")
-				jsonparser.ObjectEach(nodes, handler)
+				nodesJson, _ := getApi(nodesJsonURL)
+				nodesObject, _, _, _ := jsonparser.Get(nodesJson, "nodes")
+				jsonparser.ObjectEach(nodesObject, handler)
 			}
 		}
 
@@ -112,9 +113,9 @@ func getCommunities() (interface{}, error) {
 }
 
 // getApi returns parsed Json
-func getApi(url string) ([]byte, error) {
+func getApi(urlAdress string) ([]byte, error) {
 	log.Info("Fetching FF API")
-	u, err := url.Parse(url)
+	u, err := url.Parse(urlAdress)
 	if err != nil {
 		return nil, err
 	}
