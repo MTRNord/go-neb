@@ -42,7 +42,7 @@ func getCommunities() (interface{}, error) {
 		if err != nil {
 			return err
 		}
-		communities = communities + "\n" + keyString
+		communities = communities + ", " + keyString
 		return nil
 	}
 	ffApiJson, err := getFFApi()
@@ -55,7 +55,7 @@ func getCommunities() (interface{}, error) {
 
 // getFFApi returns parsed Json
 func getFFApi() ([]byte, error) {
-	log.Info("Fetching FF API File for ")
+	log.Info("Fetching FF API File ")
 	u, err := url.Parse("https://api.freifunk.net/data/ffSummarizedDir.json")
 	if err != nil {
 		return nil, err
