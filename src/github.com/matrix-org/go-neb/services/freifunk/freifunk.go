@@ -115,7 +115,7 @@ func paseHopglassFfmapNodes(mapUrl string) (int, error) {
 	if dataType == jsonparser.Array {
 		var arrayError error
 		jsonparser.ArrayEach(data, func(mapConfigJson []byte, dataType jsonparser.ValueType, offset int, err error) {
-			dataUrl, dataUrlErr := jsonparser.ParseString(dataUrlRaw)
+			dataUrl, dataUrlErr := jsonparser.ParseString(value)
 			if dataUrlErr != nil {
 				arrayError = dataUrlErr
 			}
