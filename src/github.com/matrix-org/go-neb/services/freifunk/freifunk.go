@@ -82,9 +82,9 @@ func paseMeshviewerFfmapNodes(mapUrl string) (int, error) {
 	if nodesErr != nil {
 		return 0, nodesErr
 	}
-	nodesObject, _, _, nodesObject := jsonparser.Get(nodesJson, "nodes")
-	if nodesObject != nil {
-		return 0, nodesObject
+	nodesObject, _, _, nodesObjectErr := jsonparser.Get(nodesJson, "nodes")
+	if nodesObjectErr != nil {
+		return 0, nodesObjectErr
 	}
 	nodesObjectEachErr := jsonparser.ObjectEach(nodesObject, handler)
 	if nodesObjectEachErr != nil {
