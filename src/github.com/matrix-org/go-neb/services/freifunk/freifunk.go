@@ -171,7 +171,8 @@ func getNodes(args []string) (interface{}, error) {
 			case "netmon":
 				nodes, nodesErr = paseNetmonNodes(mapUrl)
 			case "openwifimap":
-				nodes, nodesErr = paseOpenwifimapNodes(mapUrl)
+				log.Error("Don't parse openwifimap as Berlin otherwise provides wrong data")
+				//nodes, nodesErr = paseOpenwifimapNodes(mapUrl)
 			}
 		}
 	}, "nodeMaps")
