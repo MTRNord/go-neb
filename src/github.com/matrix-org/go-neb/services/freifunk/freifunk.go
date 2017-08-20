@@ -42,7 +42,7 @@ func (s *Service) Commands(cli *gomatrix.Client) []types.Command {
 	}
 }
 
-func paseMeshviewerHoppglassFfmapNodes(mapUrl string) (int, error) {
+func paseMeshviewerHopglassFfmapNodes(mapUrl string) (int, error) {
 	var nodes int
 
 	var handler func([]byte, []byte, jsonparser.ValueType, int) error
@@ -163,11 +163,11 @@ func getNodes(args []string) (interface{}, error) {
 		if mapType == "geographical" {
 			switch technicalType {
 			case "meshviewer":
-				nodes, nodesErr = paseMeshviewerHoppglassFfmapNodes(mapUrl)
-			case "hoppglass":
-				nodes, nodesErr = paseMeshviewerHoppglassFfmapNodes(mapUrl)
+				nodes, nodesErr = paseMeshviewerHopglassFfmapNodes(mapUrl)
+			case "hopglass":
+				nodes, nodesErr = paseMeshviewerHopglassFfmapNodes(mapUrl)
 			case "ffmap":
-				nodes, nodesErr = paseMeshviewerHoppglassFfmapNodes(mapUrl)
+				nodes, nodesErr = paseMeshviewerHopglassFfmapNodes(mapUrl)
 			case "netmon":
 				nodes, nodesErr = paseNetmonNodes(mapUrl)
 				//case "openwifimap":
