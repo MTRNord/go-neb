@@ -74,9 +74,9 @@ func getNodes(args []string) (interface{}, error) {
 			if mapType == "geographical" {
 				var nodesJsonURL string
 				if mapUrl[len(mapUrl)-1:] == "/" {
-					nodesJsonURL = mapUrl + "data" + "nodes.json"
+					nodesJsonURL = mapUrl + "data/" + "nodes.json"
 				} else {
-					nodesJsonURL = mapUrl + "/" + "data" + "nodes.json"
+					nodesJsonURL = mapUrl + "/" + "dat/a" + "nodes.json"
 				}
 
 				nodesJson, _ := getApi(nodesJsonURL)
