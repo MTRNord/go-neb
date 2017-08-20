@@ -44,7 +44,8 @@ func getNodes(args []string) (interface{}, error) {
 	var nodes int
 	var handler func([]byte, []byte, jsonparser.ValueType, int) error
 	handler = func(key []byte, value []byte, dataType jsonparser.ValueType, offset int) error {
-		if jsonparser.GetBoolean(value, "flags", "online") {
+		online, _ := jsonparser.GetBoolean(value, "flags", "online")
+		if online {
 			nodes++
 		}
 		return nil
@@ -54,12 +55,12 @@ func getNodes(args []string) (interface{}, error) {
 		return nil, err
 	}
 
-	nodes, _, _, err := jsonparser.Get(ffApiJson, strings.Join(args, " "))
+	community, _, _, communityErr := jsonparser.Get(ffApiJson, strings.Join(args, " "))
 	if err != nil {
-		return nil, err
+		return nil, communityErr
 	}
 
-	jsonparser.ArrayEach(nodes, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+	jsonparser.ArrayEach(community, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 		mapUrl, _ := jsonparser.GetString(value, "url")
 		mapType, _ := jsonparser.GetString(value, "mapType")
 		technicalType, _ := jsonparser.GetString(value, "technicalType")
