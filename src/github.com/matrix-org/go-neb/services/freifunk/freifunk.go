@@ -45,7 +45,11 @@ func getCommunities() (interface{}, error) {
 		communities = communities + "\n" + keyString
 		return nil
 	}
-	jsonparser.ObjectEach(getFFApi(), handler)
+	ffApiJson, err := getFFApi()
+	if err != nil {
+		return nil, err
+	}
+	jsonparser.ObjectEach(ffApiJson, handler)
 	return &gomatrix.TextMessage{"m.notice", communities}, nil
 }
 
