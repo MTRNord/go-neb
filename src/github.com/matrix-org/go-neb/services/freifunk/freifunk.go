@@ -63,10 +63,7 @@ func getNodes(args []string) (interface{}, error) {
 		return nil, communityErr
 	}
 
-	communityArrayErr := jsonparser.ArrayEach(community, func(value []byte, dataType jsonparser.ValueType, offset int, err error) error {
-		if err != nil {
-			return err
-		}
+	_, communityArrayErr := jsonparser.ArrayEach(community, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 		mapUrl, _ := jsonparser.GetString(value, "url")
 		mapType, _ := jsonparser.GetString(value, "mapType")
 		technicalType, _ := jsonparser.GetString(value, "technicalType")
@@ -85,7 +82,6 @@ func getNodes(args []string) (interface{}, error) {
 				jsonparser.ObjectEach(nodesObject, handler)
 			}
 		}
-		return nil
 	}, "nodeMaps")
 
 	if communityArrayErr != nil {
