@@ -91,6 +91,14 @@ func paseMeshviewerFfmapNodes(mapUrl string) (int, error) {
 		nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
 	}
 
+	if (strings.Count(nodesJsonURL, "http://") > 1) || (strings.Count(nodesJsonURL, "https://") > 1) {
+		nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
+	}
+
+	if strings.Contains(nodesJsonURL, "http://") && strings.Contains(nodesJsonURL, "https://") {
+		nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
+	}
+
 	nodesJson, nodesErr := getApi(nodesJsonURL)
 	if nodesErr != nil {
 		return 0, nodesErr
@@ -156,6 +164,14 @@ func paseHopglassFfmapNodes(mapUrl string) (int, error) {
 				nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
 			}
 
+			if (strings.Count(nodesJsonURL, "http://") > 1) || (strings.Count(nodesJsonURL, "https://") > 1) {
+				nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
+			}
+
+			if strings.Contains(nodesJsonURL, "http://") && strings.Contains(nodesJsonURL, "https://") {
+				nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
+			}
+
 			nodesJson, nodesErr := getApi(nodesJsonURL)
 			if nodesErr != nil {
 				arrayError = nodesErr
@@ -201,6 +217,14 @@ func paseHopglassFfmapNodes(mapUrl string) (int, error) {
 		}
 
 		if strings.Contains(nodesJsonURL, mapUrl+mapUrl) {
+			nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
+		}
+
+		if (strings.Count(nodesJsonURL, "http://") > 1) || (strings.Count(nodesJsonURL, "https://") > 1) {
+			nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
+		}
+
+		if strings.Contains(nodesJsonURL, "http://") && strings.Contains(nodesJsonURL, "https://") {
 			nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
 		}
 
