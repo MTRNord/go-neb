@@ -108,79 +108,79 @@ func paseHopglassFfmapNodes(mapUrl string) (int, error) {
 	if mapConfigErr != nil {
 		return 0, mapConfigErr
 	}
-	dataUrlRaw, type, _, dataUrlRawErr := jsonparser.Get(mapConfigJson, "dataPath")
-    if dataUrlRawErr != nil {
+	dataUrlRaw, dataType, _, dataUrlRawErr := jsonparser.Get(mapConfigJson, "dataPath")
+	if dataUrlRawErr != nil {
 		return 0, dataUrlRawErr
 	}
-    if type == jsonparser.Array {
-        var arrayError error
-        jsonparser.ArrayEach(data, func(mapConfigJson []byte, dataType jsonparser.ValueType, offset int, err error) {
-            dataUrl, dataUrlErr := jsonparser.ParseString(dataUrlRaw)
-            if dataUrlErr != nil {
-                arrayError = dataUrlErr
-            }
-            var nodesJsonURL string
-            if mapUrl[len(mapUrl)-1:] == "/" {
-                nodesJsonURL = mapUrl + dataUrl + "nodes.json"
-            } else {
-                if dataUrl[0] == '/' {
-                    nodesJsonURL = mapUrl + dataUrl + "nodes.json"
-                } else {
-                    nodesJsonURL = mapUrl + "/" + dataUrl + "nodes.json"
-                }
-            }
+	if dataType == jsonparser.Array {
+		var arrayError error
+		jsonparser.ArrayEach(data, func(mapConfigJson []byte, dataType jsonparser.ValueType, offset int, err error) {
+			dataUrl, dataUrlErr := jsonparser.ParseString(dataUrlRaw)
+			if dataUrlErr != nil {
+				arrayError = dataUrlErr
+			}
+			var nodesJsonURL string
+			if mapUrl[len(mapUrl)-1:] == "/" {
+				nodesJsonURL = mapUrl + dataUrl + "nodes.json"
+			} else {
+				if dataUrl[0] == '/' {
+					nodesJsonURL = mapUrl + dataUrl + "nodes.json"
+				} else {
+					nodesJsonURL = mapUrl + "/" + dataUrl + "nodes.json"
+				}
+			}
 
-            nodesJson, nodesErr := getApi(nodesJsonURL)
-            if nodesErr != nil {
-                arrayError = nodesErr
-            }
+			nodesJson, nodesErr := getApi(nodesJsonURL)
+			if nodesErr != nil {
+				arrayError = nodesErr
+			}
 
-            _, communityArrayErr := jsonparser.ArrayEach(nodesJson, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-                online, _ := jsonparser.GetBoolean(value, "flags", "online")
-                if online {
-                    nodes++
-                }
-            }, "nodes")
+			_, communityArrayErr := jsonparser.ArrayEach(nodesJson, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+				online, _ := jsonparser.GetBoolean(value, "flags", "online")
+				if online {
+					nodes++
+				}
+			}, "nodes")
 
-            if communityArrayErr != nil {
-                arrayError = communityArrayErr
-            }
-        }, "dataPath")
-        if arrayError != nil {
-            return 0, arrayError
-        }
-    } else {
-        dataUrl, dataUrlErr := jsonparser.ParseString(dataUrlRaw)
-        if dataUrlErr != nil {
-            return 0, dataUrlErr
-        }
-        var nodesJsonURL string
-        if mapUrl[len(mapUrl)-1:] == "/" {
-            nodesJsonURL = mapUrl + dataUrl + "nodes.json"
-        } else {
-            if dataUrl[0] == '/' {
-                nodesJsonURL = mapUrl + dataUrl + "nodes.json"
-            } else {
-                nodesJsonURL = mapUrl + "/" + dataUrl + "nodes.json"
-            }
-        }
+			if communityArrayErr != nil {
+				arrayError = communityArrayErr
+			}
+		}, "dataPath")
+		if arrayError != nil {
+			return 0, arrayError
+		}
+	} else {
+		dataUrl, dataUrlErr := jsonparser.ParseString(dataUrlRaw)
+		if dataUrlErr != nil {
+			return 0, dataUrlErr
+		}
+		var nodesJsonURL string
+		if mapUrl[len(mapUrl)-1:] == "/" {
+			nodesJsonURL = mapUrl + dataUrl + "nodes.json"
+		} else {
+			if dataUrl[0] == '/' {
+				nodesJsonURL = mapUrl + dataUrl + "nodes.json"
+			} else {
+				nodesJsonURL = mapUrl + "/" + dataUrl + "nodes.json"
+			}
+		}
 
-        nodesJson, nodesErr := getApi(nodesJsonURL)
-        if nodesErr != nil {
-            return 0, nodesErr
-        }
+		nodesJson, nodesErr := getApi(nodesJsonURL)
+		if nodesErr != nil {
+			return 0, nodesErr
+		}
 
-        _, communityArrayErr := jsonparser.ArrayEach(nodesJson, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-            online, _ := jsonparser.GetBoolean(value, "flags", "online")
-            if online {
-                nodes++
-            }
-        }, "nodes")
+		_, communityArrayErr := jsonparser.ArrayEach(nodesJson, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+			online, _ := jsonparser.GetBoolean(value, "flags", "online")
+			if online {
+				nodes++
+			}
+		}, "nodes")
 
-        if communityArrayErr != nil {
-            return 0, communityArrayErr
-        }
-    }
+		if communityArrayErr != nil {
+			return 0, communityArrayErr
+		}
+	}
 
 	return nodes, nil
 }
