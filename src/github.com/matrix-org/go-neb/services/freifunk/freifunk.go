@@ -39,7 +39,7 @@ func getCommunities() (interface{}, error) {
 	var handler func([]byte, []byte, jsonparser.ValueType, int) error
 	handler = func(key []byte, value []byte, dataType jsonparser.ValueType, offset int) error {
 		keyString := jsonparser.ParseString(key)
-		communities = communities + "\n" + key
+		communities = communities + "\n" + keyString
 	}
 	jsonparser.ObjectEach(getFFApi(), handler)
 	return &gomatrix.TextMessage{"m.notice", communities}, nil

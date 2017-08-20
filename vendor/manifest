@@ -343,6 +343,13 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "golang.org/x/sys/unix",
+			"repository": "https://go.googlesource.com/sys",
+			"revision": "43e60d72a8e2bd92ee98319ba9a384a0e9837c08",
+			"branch": "master",
+			"path": "/unix"
+		},
+		{
 			"importpath": "golang.org/x/sys/windows",
 			"repository": "https://go.googlesource.com/sys",
 			"revision": "43e60d72a8e2bd92ee98319ba9a384a0e9837c08",
