@@ -42,8 +42,9 @@ func (s *Service) Commands(cli *gomatrix.Client) []types.Command {
 	}
 }
 
-func getNodes(args []string) (interface{}, error) {
+func paseMeshviewerHoppglassFfmapNodes(mapUrl string) (int, error) {
 	var nodes int
+
 	var handler func([]byte, []byte, jsonparser.ValueType, int) error
 	handler = func(key []byte, value []byte, dataType jsonparser.ValueType, offset int) error {
 		online, _ := jsonparser.GetBoolean(value, "flags", "online")
@@ -52,6 +53,99 @@ func getNodes(args []string) (interface{}, error) {
 		}
 		return nil
 	}
+
+	var mapConfigURL string
+	if mapUrl[len(mapUrl)-1:] == "/" {
+		mapConfigURL = mapUrl + "config.json"
+	} else {
+		mapConfigURL = mapUrl + "/" + "config.json"
+	}
+
+	mapConfigJson, mapConfigErr := getApi(nodesJsonURL)
+	if mapConfigErr != nil {
+		return nil, mapConfigErr
+	}
+	dataUrl, _ := jsonparser.GetString(mapConfigJson, "dataPath")
+
+	var nodesJsonURL string
+	if mapUrl[len(mapUrl)-1:] == "/" {
+		nodesJsonURL = mapUrl + dataUrl + "nodes.json"
+	} else {
+		if dataUrl[0] == "/" {
+			nodesJsonURL = mapUrl + dataUrl + "nodes.json"
+		} else {
+			nodesJsonURL = mapUrl + "/" + dataUrl + "nodes.json"
+		}
+	}
+
+	nodesJson, nodesErr := getApi(nodesJsonURL)
+	if nodesErr != nil {
+		return nil, nodesErr
+	}
+	nodesObject, _, _, _ := jsonparser.Get(nodesJson, "nodes")
+	nodesObjectErr = jsonparser.ObjectEach(nodesObject, handler)
+	if nodesObjectErr != nil {
+		return nil, nodesObjectErr
+	}
+
+	return nodes, nil
+}
+
+func paseNetmonNodes(mapUrl string) (int, error) {
+	var nodes int
+
+	var handler func([]byte, []byte, jsonparser.ValueType, int) error
+	handler = func(key []byte, value []byte, dataType jsonparser.ValueType, offset int) error {
+		online, _ := jsonparser.GetBoolean(value, "status", "online")
+		if online {
+			nodes++
+		}
+		return nil
+	}
+
+	var nodesJsonURL string
+	mapUrl = strings.Replace(mapUrl, "map.php", "", -1)
+	if mapUrl[len(mapUrl)-1:] == "/" {
+		nodesJsonURL = mapUrl + "api/router_json.php"
+	} else {
+		nodesJsonURL = mapUrl + "/api/router_json.php"
+	}
+
+	nodesJson, nodesErr := getApi(nodesJsonURL)
+	if nodesErr != nil {
+		return nil, nodesErr
+	}
+	nodesObject, _, _, _ := jsonparser.Get(nodesJson, "nodes")
+	nodesObjectErr = jsonparser.ObjectEach(nodesObject, handler)
+	if nodesObjectErr != nil {
+		return nil, nodesObjectErr
+	}
+
+	return nodes, nil
+}
+
+func paseOpenwifimapNodes(mapUrl string) (int, error) {
+	var nodesJsonURL string
+	if mapUrl[len(mapUrl)-1:] == "/" {
+		nodesJsonURL = mapUrl + "view_nodes_spatial?count=true"
+	} else {
+		nodesJsonURL = mapUrl + "/view_nodes_spatial?count=true"
+	}
+
+	nodesJson, nodesErr := getApi(nodesJsonURL)
+	if nodesErr != nil {
+		return nil, nodesErr
+	}
+	nodes, _ := jsonparser.GetInt(nodesJson, "count")
+	nodesInt, err := strconv.Atoi(nodes)
+	if err != nil {
+		return nil, err
+	}
+	return nodesInt, nil
+}
+
+func getNodes(args []string) (interface{}, error) {
+	var nodes int
 
 	ffApiJson, err := getApi("https://api.freifunk.net/data/ffSummarizedDir.json")
 	if err != nil {
@@ -64,24 +158,24 @@ func getNodes(args []string) (interface{}, error) {
 		return nil, communityErr
 	}
 
-	var nodesObjectErr error
+	var nodesErr error
 	_, communityArrayErr := jsonparser.ArrayEach(community, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 		mapUrl, _ := jsonparser.GetString(value, "url")
 		mapType, _ := jsonparser.GetString(value, "mapType")
 		technicalType, _ := jsonparser.GetString(value, "technicalType")
 
-		if technicalType == "meshviewer" {
-			if mapType == "geographical" {
-				var nodesJsonURL string
-				if mapUrl[len(mapUrl)-1:] == "/" {
-					nodesJsonURL = mapUrl + "data/" + "nodes.json"
-				} else {
-					nodesJsonURL = mapUrl + "/" + "data/" + "nodes.json"
-				}
-
-				nodesJson, _ := getApi(nodesJsonURL)
-				nodesObject, _, _, _ := jsonparser.Get(nodesJson, "nodes")
-				nodesObjectErr = jsonparser.ObjectEach(nodesObject, handler)
+		if mapType == "geographical" {
+			switch technicalType {
+			case "meshviewer":
+				nodes, nodesErr = paseMeshviewerHoppglassFfmapNodes(mapUrl)
+			case "hoppglass":
+				nodes, nodesErr = paseMeshviewerHoppglassFfmapNodes(mapUrl)
+			case "ffmap":
+				nodes, nodesErr = paseMeshviewerHoppglassFfmapNodes(mapUrl)
+			case "netmon":
+				nodes, nodesErr = paseNetmonNodes(mapUrl)
+			case "openwifimap":
+				nodes, nodesErr = paseOpenwifimapNodes(mapUrl)
 			}
 		}
 	}, "nodeMaps")
@@ -90,7 +184,7 @@ func getNodes(args []string) (interface{}, error) {
 		return nil, communityArrayErr
 	}
 
-	if nodesObjectErr != nil {
+	if nodesErr != nil {
 		return nil, nodesObjectErr
 	}
 
