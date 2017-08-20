@@ -52,6 +52,7 @@ func getNodes(args []string) (interface{}, error) {
 		}
 		return nil
 	}
+
 	ffApiJson, err := getApi("https://api.freifunk.net/data/ffSummarizedDir.json")
 	if err != nil {
 		return nil, err
@@ -63,6 +64,7 @@ func getNodes(args []string) (interface{}, error) {
 		return nil, communityErr
 	}
 
+	var nodesObjectErr error
 	_, communityArrayErr := jsonparser.ArrayEach(community, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 		mapUrl, _ := jsonparser.GetString(value, "url")
 		mapType, _ := jsonparser.GetString(value, "mapType")
@@ -79,13 +81,17 @@ func getNodes(args []string) (interface{}, error) {
 
 				nodesJson, _ := getApi(nodesJsonURL)
 				nodesObject, _, _, _ := jsonparser.Get(nodesJson, "nodes")
-				jsonparser.ObjectEach(nodesObject, handler)
+				nodesObjectErr = jsonparser.ObjectEach(nodesObject, handler)
 			}
 		}
 	}, "nodeMaps")
 
 	if communityArrayErr != nil {
 		return nil, communityArrayErr
+	}
+
+	if nodesObjectErr != nil {
+		return nil, nodesObjectErr
 	}
 
 	return &gomatrix.TextMessage{"m.notice", strconv.Itoa(nodes)}, nil
