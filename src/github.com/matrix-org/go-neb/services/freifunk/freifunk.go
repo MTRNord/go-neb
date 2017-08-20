@@ -66,7 +66,15 @@ func paseMeshviewerFfmapNodes(mapUrl string) (int, error) {
 		return 0, mapConfigErr
 	}
 	dataUrl, _ := jsonparser.GetString(mapConfigJson, "dataPath")
-	dataUrl = strings.TrimPrefix(dataUrl, mapUrl)
+	if strings.HasPrefix(dataUrl, "https://") && strings.HasPrefix(mapUrl, "http://") {
+		mapUrl = strings.TrimPrefix(mapUrl, "http://")
+		mapUrl = "https://" + mapUrl
+		dataUrl = strings.TrimPrefix(dataUrl, mapUrl)
+	} else if strings.HasPrefix(dataUrl, "http://") && strings.HasPrefix(mapUrl, "https://") {
+		mapUrl = strings.TrimPrefix(mapUrl, "https://")
+		mapUrl = "http://" + mapUrl
+		dataUrl = strings.TrimPrefix(dataUrl, mapUrl)
+	}
 
 	var nodesJsonURL string
 	if mapUrl[len(mapUrl)-1:] == "/" {
@@ -77,6 +85,10 @@ func paseMeshviewerFfmapNodes(mapUrl string) (int, error) {
 		} else {
 			nodesJsonURL = mapUrl + "/" + dataUrl + "nodes.json"
 		}
+	}
+
+	if strings.Contains(nodesJsonURL, mapUrl+mapUrl) {
+		nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
 	}
 
 	nodesJson, nodesErr := getApi(nodesJsonURL)
@@ -120,7 +132,15 @@ func paseHopglassFfmapNodes(mapUrl string) (int, error) {
 			if dataUrlErr != nil {
 				arrayError = dataUrlErr
 			}
-			dataUrl = strings.TrimPrefix(dataUrl, mapUrl)
+			if strings.HasPrefix(dataUrl, "https://") && strings.HasPrefix(mapUrl, "http://") {
+				mapUrl = strings.TrimPrefix(mapUrl, "http://")
+				mapUrl = "https://" + mapUrl
+				dataUrl = strings.TrimPrefix(dataUrl, mapUrl)
+			} else if strings.HasPrefix(dataUrl, "http://") && strings.HasPrefix(mapUrl, "https://") {
+				mapUrl = strings.TrimPrefix(mapUrl, "https://")
+				mapUrl = "http://" + mapUrl
+				dataUrl = strings.TrimPrefix(dataUrl, mapUrl)
+			}
 			var nodesJsonURL string
 			if mapUrl[len(mapUrl)-1:] == "/" {
 				nodesJsonURL = mapUrl + dataUrl + "nodes.json"
@@ -156,7 +176,15 @@ func paseHopglassFfmapNodes(mapUrl string) (int, error) {
 		if dataUrlErr != nil {
 			return 0, dataUrlErr
 		}
-		dataUrl = strings.TrimPrefix(dataUrl, mapUrl)
+		if strings.HasPrefix(dataUrl, "https://") && strings.HasPrefix(mapUrl, "http://") {
+			mapUrl = strings.TrimPrefix(mapUrl, "http://")
+			mapUrl = "https://" + mapUrl
+			dataUrl = strings.TrimPrefix(dataUrl, mapUrl)
+		} else if strings.HasPrefix(dataUrl, "http://") && strings.HasPrefix(mapUrl, "https://") {
+			mapUrl = strings.TrimPrefix(mapUrl, "https://")
+			mapUrl = "http://" + mapUrl
+			dataUrl = strings.TrimPrefix(dataUrl, mapUrl)
+		}
 		var nodesJsonURL string
 		if mapUrl[len(mapUrl)-1:] == "/" {
 			nodesJsonURL = mapUrl + dataUrl + "nodes.json"
