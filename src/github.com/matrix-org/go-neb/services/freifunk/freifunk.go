@@ -152,6 +152,10 @@ func paseHopglassFfmapNodes(mapUrl string) (int, error) {
 				}
 			}
 
+			if strings.Contains(nodesJsonURL, mapUrl+mapUrl) {
+				nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
+			}
+
 			nodesJson, nodesErr := getApi(nodesJsonURL)
 			if nodesErr != nil {
 				arrayError = nodesErr
@@ -194,6 +198,10 @@ func paseHopglassFfmapNodes(mapUrl string) (int, error) {
 			} else {
 				nodesJsonURL = mapUrl + "/" + dataUrl + "nodes.json"
 			}
+		}
+
+		if strings.Contains(nodesJsonURL, mapUrl+mapUrl) {
+			nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
 		}
 
 		nodesJson, nodesErr := getApi(nodesJsonURL)
