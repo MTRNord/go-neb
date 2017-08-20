@@ -4,7 +4,7 @@ package freifunk
 import (
 	"io/ioutil"
 	"net/http"
-	"net/url"
+	"strings"
 
 	"github.com/buger/jsonparser"
 	"github.com/matrix-org/go-neb/types"
@@ -41,7 +41,47 @@ func (s *Service) Commands(cli *gomatrix.Client) []types.Command {
 }
 
 func getNodes(args []string) (interface{}, error) {
-	return &gomatrix.TextMessage{"m.notice", "Not implemented yet"}, nil
+	var nodes int
+	var handler func([]byte, []byte, jsonparser.ValueType, int) error
+	handler = func(key []byte, value []byte, dataType jsonparser.ValueType, offset int) error {
+		if jsonparser.GetBoolean(value, "flags", "online") {
+			nodes++
+		}
+		return nil
+	}
+	ffApiJson, err := getApi("https://api.freifunk.net/data/ffSummarizedDir.json")
+	if err != nil {
+		return nil, err
+	}
+
+	nodes, _, _, err := jsonparser.Get(ffApiJson, strings.Join(args, " "))
+	if err != nil {
+		return nil, err
+	}
+
+	jsonparser.ArrayEach(nodes, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+		mapUrl, _ := jsonparser.GetString(value, "url")
+		mapType, _ := jsonparser.GetString(value, "mapType")
+		technicalType, _ := jsonparser.GetString(value, "technicalType")
+
+		if technicalType == "meshviewer" {
+			if mapType == "geographical" {
+				var nodesJson string
+				if mapUrl[len(mapUrl)-1] == "/" {
+					nodesJson = mapUrl + "data" + "nodes.json"
+				} else {
+					nodesJson = mapUrl + "/" + "data" + "nodes.json"
+				}
+
+				nodesJson, _ := getApi(nodesJson)
+				nodes, _, _, _ := jsonparser.Get(nodesJson, "nodes")
+				jsonparser.ObjectEach(nodes, handler)
+			}
+		}
+
+	}, "nodeMaps")
+
+	return &gomatrix.TextMessage{"m.notice", nodes}, nil
 }
 
 func getCommunities() (interface{}, error) {
@@ -62,7 +102,7 @@ func getCommunities() (interface{}, error) {
 		}
 		return nil
 	}
-	ffApiJson, err := getFFApi()
+	ffApiJson, err := getApi("https://api.freifunk.net/data/ffSummarizedDir.json")
 	if err != nil {
 		return nil, err
 	}
@@ -70,10 +110,10 @@ func getCommunities() (interface{}, error) {
 	return &gomatrix.TextMessage{"m.notice", communities}, nil
 }
 
-// getFFApi returns parsed Json
-func getFFApi() ([]byte, error) {
-	log.Info("Fetching FF API File ")
-	u, err := url.Parse("https://api.freifunk.net/data/ffSummarizedDir.json")
+// getApi returns parsed Json
+func getApi(url string) ([]byte, error) {
+	log.Info("Fetching FF API")
+	u, err := url.Parse(url)
 	if err != nil {
 		return nil, err
 	}
