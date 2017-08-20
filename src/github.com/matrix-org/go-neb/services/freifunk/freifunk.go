@@ -170,8 +170,8 @@ func getNodes(args []string) (interface{}, error) {
 				nodes, nodesErr = paseMeshviewerHoppglassFfmapNodes(mapUrl)
 			case "netmon":
 				nodes, nodesErr = paseNetmonNodes(mapUrl)
-			case "openwifimap":
-				log.Error("Don't parse openwifimap as Berlin otherwise provides wrong data")
+				//case "openwifimap":
+				//log.Error("Don't parse openwifimap as Berlin otherwise provides wrong data")
 				//nodes, nodesErr = paseOpenwifimapNodes(mapUrl)
 			}
 		}
