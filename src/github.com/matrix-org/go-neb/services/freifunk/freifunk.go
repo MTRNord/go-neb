@@ -99,6 +99,10 @@ func paseMeshviewerFfmapNodes(mapUrl string) (int, error) {
 		nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
 	}
 
+	if strings.HasPrefix(nodesJsonURL, "/") {
+		nodesJsonURL = strings.TrimPrefix(nodesJsonURL, "/")
+	}
+
 	nodesJson, nodesErr := getApi(nodesJsonURL)
 	if nodesErr != nil {
 		return 0, nodesErr
@@ -172,6 +176,10 @@ func paseHopglassFfmapNodes(mapUrl string) (int, error) {
 				nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
 			}
 
+			if strings.HasPrefix(nodesJsonURL, "/") {
+				nodesJsonURL = strings.TrimPrefix(nodesJsonURL, "/")
+			}
+
 			nodesJson, nodesErr := getApi(nodesJsonURL)
 			if nodesErr != nil {
 				arrayError = nodesErr
@@ -226,6 +234,10 @@ func paseHopglassFfmapNodes(mapUrl string) (int, error) {
 
 		if strings.Contains(nodesJsonURL, "http://") && strings.Contains(nodesJsonURL, "https://") {
 			nodesJsonURL = strings.TrimPrefix(nodesJsonURL, mapUrl)
+		}
+
+		if strings.HasPrefix(nodesJsonURL, "/") {
+			nodesJsonURL = strings.TrimPrefix(nodesJsonURL, "/")
 		}
 
 		nodesJson, nodesErr := getApi(nodesJsonURL)
