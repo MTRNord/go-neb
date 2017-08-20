@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/buger/jsonparser"
@@ -83,7 +84,7 @@ func getNodes(args []string) (interface{}, error) {
 
 	}, "nodeMaps")
 
-	return &gomatrix.TextMessage{"m.notice", nodes}, nil
+	return &gomatrix.TextMessage{"m.notice", strconv.Itoa(nodes)}, nil
 }
 
 func getCommunities() (interface{}, error) {
