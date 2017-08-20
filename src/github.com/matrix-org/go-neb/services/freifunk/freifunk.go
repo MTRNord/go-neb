@@ -31,21 +31,34 @@ func (s *Service) Commands(cli *gomatrix.Client) []types.Command {
 				return getCommunities()
 			},
 		},
+		types.Command{
+			Path: []string{"freifunk", "nodes"},
+			Command: func(roomID, userID string, args []string) (interface{}, error) {
+				return getNodes(args)
+			},
+		},
 	}
+}
+
+func getNodes(args []string) (interface{}, error) {
+	return &gomatrix.TextMessage{"m.notice", "Not implemented yet"}, nil
 }
 
 func getCommunities() (interface{}, error) {
 	var communities string
 	var handler func([]byte, []byte, jsonparser.ValueType, int) error
 	handler = func(key []byte, value []byte, dataType jsonparser.ValueType, offset int) error {
-		keyString, err := jsonparser.ParseString(key)
-		if err != nil {
-			return err
-		}
-		if communities == "" {
-			communities = keyString
-		} else {
-			communities = communities + ", " + keyString
+		_, _, _, nodeMaps := jsonparser.Get(value, "nodeMaps")
+		if nodeMaps == nil {
+			keyString, err := jsonparser.ParseString(key)
+			if err != nil {
+				return err
+			}
+			if communities == "" {
+				communities = keyString
+			} else {
+				communities = communities + ", " + keyString
+			}
 		}
 		return nil
 	}
