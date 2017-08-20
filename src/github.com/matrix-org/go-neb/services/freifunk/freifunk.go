@@ -66,6 +66,7 @@ func paseMeshviewerFfmapNodes(mapUrl string) (int, error) {
 		return 0, mapConfigErr
 	}
 	dataUrl, _ := jsonparser.GetString(mapConfigJson, "dataPath")
+	dataUrl = strings.TrimPrefix(dataUrl, mapUrl)
 
 	var nodesJsonURL string
 	if mapUrl[len(mapUrl)-1:] == "/" {
@@ -119,6 +120,7 @@ func paseHopglassFfmapNodes(mapUrl string) (int, error) {
 			if dataUrlErr != nil {
 				arrayError = dataUrlErr
 			}
+			dataUrl = strings.TrimPrefix(dataUrl, mapUrl)
 			var nodesJsonURL string
 			if mapUrl[len(mapUrl)-1:] == "/" {
 				nodesJsonURL = mapUrl + dataUrl + "nodes.json"
@@ -154,6 +156,7 @@ func paseHopglassFfmapNodes(mapUrl string) (int, error) {
 		if dataUrlErr != nil {
 			return 0, dataUrlErr
 		}
+		dataUrl = strings.TrimPrefix(dataUrl, mapUrl)
 		var nodesJsonURL string
 		if mapUrl[len(mapUrl)-1:] == "/" {
 			nodesJsonURL = mapUrl + dataUrl + "nodes.json"
