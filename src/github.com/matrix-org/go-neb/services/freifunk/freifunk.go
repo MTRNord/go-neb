@@ -137,7 +137,7 @@ func paseOpenwifimapNodes(mapUrl string) (int, error) {
 		return 0, nodesErr
 	}
 	nodes, _ := jsonparser.GetInt(nodesJson, "count")
-	return nodes, nil
+	return int(nodes), nil
 }
 
 func getNodes(args []string) (interface{}, error) {
