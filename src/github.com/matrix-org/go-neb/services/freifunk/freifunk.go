@@ -61,17 +61,17 @@ func paseMeshviewerHoppglassFfmapNodes(mapUrl string) (int, error) {
 		mapConfigURL = mapUrl + "/" + "config.json"
 	}
 
-	mapConfigJson, mapConfigErr := getApi(nodesJsonURL)
+	mapConfigJson, mapConfigErr := getApi(mapConfigURL)
 	if mapConfigErr != nil {
-		return nil, mapConfigErr
+		return 0, mapConfigErr
 	}
 	dataUrl, _ := jsonparser.GetString(mapConfigJson, "dataPath")
 
 	var nodesJsonURL string
-	if mapUrl[len(mapUrl)-1:] == "/" {
+	if mapUrl[len(mapUrl)-1:] == '/' {
 		nodesJsonURL = mapUrl + dataUrl + "nodes.json"
 	} else {
-		if dataUrl[0] == "/" {
+		if dataUrl[0] == '/' {
 			nodesJsonURL = mapUrl + dataUrl + "nodes.json"
 		} else {
 			nodesJsonURL = mapUrl + "/" + dataUrl + "nodes.json"
@@ -80,12 +80,12 @@ func paseMeshviewerHoppglassFfmapNodes(mapUrl string) (int, error) {
 
 	nodesJson, nodesErr := getApi(nodesJsonURL)
 	if nodesErr != nil {
-		return nil, nodesErr
+		return 0, nodesErr
 	}
 	nodesObject, _, _, _ := jsonparser.Get(nodesJson, "nodes")
-	nodesObjectErr = jsonparser.ObjectEach(nodesObject, handler)
+	nodesObjectErr := jsonparser.ObjectEach(nodesObject, handler)
 	if nodesObjectErr != nil {
-		return nil, nodesObjectErr
+		return 0, nodesObjectErr
 	}
 
 	return nodes, nil
@@ -113,7 +113,7 @@ func paseNetmonNodes(mapUrl string) (int, error) {
 
 	nodesJson, nodesErr := getApi(nodesJsonURL)
 	if nodesErr != nil {
-		return nil, nodesErr
+		return 0, nodesErr
 	}
 	nodesObject, _, _, _ := jsonparser.Get(nodesJson, "nodes")
 	nodesObjectErr = jsonparser.ObjectEach(nodesObject, handler)
