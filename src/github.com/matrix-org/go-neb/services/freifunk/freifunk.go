@@ -76,7 +76,7 @@ func getNodes(args []string) (interface{}, error) {
 				if mapUrl[len(mapUrl)-1:] == "/" {
 					nodesJsonURL = mapUrl + "data/" + "nodes.json"
 				} else {
-					nodesJsonURL = mapUrl + "/" + "dat/a" + "nodes.json"
+					nodesJsonURL = mapUrl + "/" + "data/" + "nodes.json"
 				}
 
 				nodesJson, _ := getApi(nodesJsonURL)
