@@ -215,7 +215,7 @@ func getCommunities() (interface{}, error) {
 
 // getApi returns parsed Json
 func getApi(urlAdress string) ([]byte, error) {
-	log.Info("Fetching FF API")
+	log.Info("Fetching FF API ", urlAdress)
 	u, err := url.Parse(urlAdress)
 	if err != nil {
 		return nil, err
