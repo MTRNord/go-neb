@@ -57,12 +57,16 @@ func getNodes(args []string) (interface{}, error) {
 		return nil, err
 	}
 
-	community, _, _, communityErr := jsonparser.Get(ffApiJson, strings.Join(args, " "))
-	if err != nil {
+	arg := strings.Join(args, " ")
+	community, _, _, communityErr := jsonparser.Get(ffApiJson, arg)
+	if communityErr != nil {
 		return nil, communityErr
 	}
 
-	jsonparser.ArrayEach(community, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+	communityArrayErr := jsonparser.ArrayEach(community, func(value []byte, dataType jsonparser.ValueType, offset int, err error) error {
+		if err != nil {
+			return err
+		}
 		mapUrl, _ := jsonparser.GetString(value, "url")
 		mapType, _ := jsonparser.GetString(value, "mapType")
 		technicalType, _ := jsonparser.GetString(value, "technicalType")
@@ -81,8 +85,12 @@ func getNodes(args []string) (interface{}, error) {
 				jsonparser.ObjectEach(nodesObject, handler)
 			}
 		}
-
+		return nil
 	}, "nodeMaps")
+
+	if communityArrayErr != nil {
+		return nil, communityArrayErr
+	}
 
 	return &gomatrix.TextMessage{"m.notice", strconv.Itoa(nodes)}, nil
 }
