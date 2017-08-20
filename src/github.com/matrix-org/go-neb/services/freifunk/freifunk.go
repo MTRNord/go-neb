@@ -38,15 +38,19 @@ func getCommunities() (interface{}, error) {
 	var communities string
 	var handler func([]byte, []byte, jsonparser.ValueType, int) error
 	handler = func(key []byte, value []byte, dataType jsonparser.ValueType, offset int) error {
-		keyString := jsonparser.ParseString(key)
+		keyString, err := jsonparser.ParseString(key)
+		if err != nil {
+			return err
+		}
 		communities = communities + "\n" + keyString
+		return nil
 	}
 	jsonparser.ObjectEach(getFFApi(), handler)
 	return &gomatrix.TextMessage{"m.notice", communities}, nil
 }
 
-// searchGiphy returns info about a gif
-func (s *Service) getFFApi() ([]byte, error) {
+// getFFApi returns parsed Json
+func getFFApi() ([]byte, error) {
 	log.Info("Fetching FF API File for ")
 	u, err := url.Parse("https://api.freifunk.net/data/ffSummarizedDir.json")
 	if err != nil {
